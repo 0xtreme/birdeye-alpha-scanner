@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🕸️ WhaleMesh — Smart Money Convergence Detector</title>
+  <title>🕸️ WHALEMESH — Smart Money Convergence Terminal</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,86 +13,93 @@
       color: #e0e0e0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       overflow-x: hidden;
+      height: 100vh;
     }
     
     .monospace { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
     
-    /* === HERO SECTION === */
-    #hero {
-      padding: 80px 40px 60px;
-      text-align: center;
-      background: linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 100%);
-      border-bottom: 1px solid rgba(0, 255, 136, 0.1);
-    }
-    
-    #hero h1 {
-      font-size: 56px;
-      font-weight: 700;
-      color: #00ff88;
-      letter-spacing: 3px;
-      margin-bottom: 16px;
-    }
-    
-    #hero .tagline {
-      font-size: 24px;
-      color: #ffaa00;
-      font-weight: 500;
-      margin-bottom: 24px;
-    }
-    
-    #hero .description {
-      font-size: 16px;
-      color: #999;
-      max-width: 900px;
-      margin: 0 auto 40px;
-      line-height: 1.7;
-    }
-    
-    #stats-bar {
+    /* === COMPACT HEADER === */
+    #header {
+      background: #0a0a0f;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      padding: 12px 24px;
       display: flex;
-      justify-content: center;
-      gap: 60px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
     }
     
-    .stat-box {
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 32px;
+    #header .logo {
+      font-size: 20px;
       font-weight: 700;
       color: #00ff88;
+      letter-spacing: 2px;
     }
     
-    .stat-label {
-      font-size: 12px;
+    #header .stats {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    #header .stat {
       color: #666;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 4px;
+    }
+    
+    #header .stat span {
+      color: #00ff88;
+      margin-right: 4px;
+    }
+    
+    #header .timestamp {
+      font-size: 11px;
+      color: #444;
+      font-family: 'SF Mono', monospace;
+    }
+    
+    #tagline {
+      background: rgba(15, 15, 26, 0.8);
+      padding: 8px 24px;
+      font-size: 13px;
+      color: #999;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+    
+    #tagline strong {
+      color: #ffaa00;
     }
     
     /* === MAIN CONTENT === */
     #main-content {
       display: flex;
-      min-height: calc(100vh - 400px);
+      height: calc(100vh - 88px);
+      margin-top: 88px;
     }
     
     /* === SIGNAL FEED (LEFT) === */
     #signal-feed {
-      width: 35%;
+      width: 30%;
       background: #0a0a0f;
       border-right: 1px solid rgba(0, 255, 136, 0.1);
       overflow-y: auto;
-      padding: 24px;
-      max-height: calc(100vh - 400px);
+      padding: 16px;
     }
     
     #signal-feed h2 {
-      font-size: 18px;
+      font-size: 14px;
       color: #00ff88;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 2px;
     }
@@ -100,9 +107,9 @@
     .signal-card {
       background: rgba(15, 15, 26, 0.8);
       border: 1px solid rgba(0, 255, 136, 0.15);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -126,17 +133,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     
     .signal-token {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 700;
       color: #fff;
     }
     
     .signal-score {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 700;
     }
     
@@ -146,14 +153,14 @@
     
     .signal-badges {
       display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 6px;
+      margin-bottom: 6px;
     }
     
     .badge {
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -166,9 +173,9 @@
     .badge-risk-high { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
     
     .signal-metrics {
-      font-size: 13px;
+      font-size: 11px;
       color: #888;
-      line-height: 1.6;
+      line-height: 1.5;
     }
     
     .signal-metrics strong {
@@ -177,7 +184,7 @@
     
     /* === NETWORK GRAPH (RIGHT) === */
     #graph-container {
-      width: 65%;
+      width: 70%;
       position: relative;
       background: #0a0a0f;
     }
@@ -210,27 +217,27 @@
       position: fixed;
       background: rgba(20, 20, 30, 0.98);
       border: 1px solid rgba(0, 255, 136, 0.4);
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 13px;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
       pointer-events: none;
       z-index: 1000;
-      max-width: 300px;
+      max-width: 280px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
     
     .tooltip-addr {
       color: #00ff88;
       font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 8px;
+      font-size: 13px;
+      margin-bottom: 6px;
       font-family: 'SF Mono', monospace;
     }
     
     .tooltip-row {
       display: flex;
       justify-content: space-between;
-      margin: 4px 0;
+      margin: 3px 0;
     }
     
     .tooltip-label { color: #888; }
@@ -239,19 +246,19 @@
     /* Legend */
     #legend {
       position: absolute;
-      bottom: 20px;
-      right: 20px;
+      bottom: 16px;
+      right: 16px;
       background: rgba(10, 10, 15, 0.95);
       border: 1px solid rgba(0, 255, 136, 0.2);
-      border-radius: 10px;
-      padding: 16px;
-      font-size: 12px;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 11px;
     }
     
     .legend-title {
       color: #00ff88;
       font-weight: 600;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
@@ -259,29 +266,29 @@
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin: 8px 0;
+      gap: 8px;
+      margin: 6px 0;
     }
     
     .legend-dot {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       border: 2px solid #333;
     }
     
-    /* === HOW IT WORKS === */
+    /* === BELOW THE FOLD === */
     #how-it-works {
-      padding: 60px 40px;
+      padding: 40px 24px;
       background: linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 100%);
       border-top: 1px solid rgba(0, 255, 136, 0.1);
     }
     
     #how-it-works h2 {
       text-align: center;
-      font-size: 32px;
+      font-size: 24px;
       color: #00ff88;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
       text-transform: uppercase;
       letter-spacing: 2px;
     }
@@ -290,27 +297,27 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 20px;
-      margin-bottom: 40px;
+      gap: 16px;
+      margin-bottom: 30px;
       flex-wrap: wrap;
     }
     
     .pipeline-step {
       text-align: center;
-      padding: 24px;
+      padding: 16px;
       background: rgba(15, 15, 26, 0.6);
       border: 1px solid rgba(0, 255, 136, 0.2);
-      border-radius: 12px;
-      min-width: 140px;
+      border-radius: 8px;
+      min-width: 110px;
     }
     
     .pipeline-icon {
-      font-size: 36px;
-      margin-bottom: 12px;
+      font-size: 28px;
+      margin-bottom: 8px;
     }
     
     .pipeline-label {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       color: #00ff88;
       text-transform: uppercase;
@@ -318,31 +325,32 @@
     }
     
     .pipeline-desc {
-      font-size: 11px;
+      font-size: 10px;
       color: #666;
-      margin-top: 6px;
+      margin-top: 4px;
     }
     
     .pipeline-arrow {
-      font-size: 24px;
+      font-size: 20px;
       color: #333;
     }
     
     .birdeye-badge {
       text-align: center;
-      margin-top: 40px;
+      margin-top: 30px;
     }
     
     .birdeye-badge a {
       display: inline-block;
-      padding: 12px 24px;
+      padding: 10px 20px;
       background: rgba(0, 255, 136, 0.1);
       border: 1px solid rgba(0, 255, 136, 0.3);
-      border-radius: 8px;
+      border-radius: 6px;
       color: #00ff88;
       text-decoration: none;
       font-weight: 600;
       transition: all 0.2s;
+      font-size: 13px;
     }
     
     .birdeye-badge a:hover {
@@ -353,11 +361,11 @@
     
     /* === FOOTER === */
     footer {
-      padding: 40px;
+      padding: 30px 24px;
       text-align: center;
       background: #0a0a0f;
       border-top: 1px solid rgba(0, 255, 136, 0.1);
-      font-size: 14px;
+      font-size: 13px;
       color: #666;
     }
     
@@ -372,17 +380,17 @@
     }
     
     .footer-links {
-      margin-top: 16px;
+      margin-top: 12px;
     }
     
     .footer-links a {
-      margin: 0 12px;
+      margin: 0 10px;
     }
     
     /* Loading state */
     .loading {
       text-align: center;
-      padding: 40px;
+      padding: 30px;
       color: #666;
     }
     
@@ -390,10 +398,10 @@
       border: 3px solid rgba(0, 255, 136, 0.1);
       border-top: 3px solid #00ff88;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
+      margin: 16px auto;
     }
     
     @keyframes spin {
@@ -410,41 +418,27 @@
   </style>
 </head>
 <body>
-  <!-- HERO SECTION -->
-  <section id="hero">
-    <h1>🕸️ WhaleMesh</h1>
-    <div class="tagline">Smart Money Convergence Detector</div>
-    <div class="description">
-      Every whale tracker shows you one wallet buying one token. That's noise. 
-      <strong>WhaleMesh maps relationships between top-performing wallets and detects when 
-      multiple unrelated profitable traders independently converge on the same token.</strong> 
-      That's signal.
+  <!-- COMPACT HEADER -->
+  <div id="header">
+    <div class="logo monospace">🕸️ WHALEMESH</div>
+    <div class="stats monospace">
+      <div class="stat"><span id="stat-wallets">—</span> Wallets</div>
+      <div class="stat"><span id="stat-edges">—</span> Edges</div>
+      <div class="stat"><span id="stat-tribes">—</span> Tribes</div>
+      <div class="stat"><span id="stat-signals">—</span> Signals</div>
     </div>
-    <div id="stats-bar">
-      <div class="stat-box">
-        <div class="stat-value monospace" id="stat-wallets">—</div>
-        <div class="stat-label">Wallets Tracked</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value monospace" id="stat-edges">—</div>
-        <div class="stat-label">Edges</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value monospace" id="stat-tribes">—</div>
-        <div class="stat-label">Tribes Detected</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value monospace" id="stat-signals">—</div>
-        <div class="stat-label">Active Signals</div>
-      </div>
-    </div>
-  </section>
+    <div class="timestamp" id="timestamp">—</div>
+  </div>
+  
+  <div id="tagline">
+    <strong>Detects when multiple unrelated profitable wallets independently converge on the same token</strong>
+  </div>
 
   <!-- MAIN CONTENT -->
   <div id="main-content">
     <!-- SIGNAL FEED (LEFT) -->
     <div id="signal-feed">
-      <h2>🎯 Convergence Signals</h2>
+      <h2>🎯 Convergence</h2>
       <div id="signals-list">
         <div class="loading">
           <div class="spinner"></div>
@@ -460,62 +454,62 @@
         <div class="legend-title">Legend</div>
         <div class="legend-item">
           <div class="legend-dot" style="background:#00ff88"></div>
-          <span>High PnL Wallet</span>
+          <span>High PnL</span>
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background:#ffaa00"></div>
-          <span>Medium PnL</span>
+          <span>Med PnL</span>
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background:#ff4444"></div>
-          <span>Negative PnL</span>
+          <span>Neg PnL</span>
         </div>
-        <div style="margin-top:12px; color:#666; font-size:11px;">
-          Node size = tokens traded<br>
-          Line thickness = similarity
+        <div style="margin-top:10px; color:#666; font-size:10px;">
+          Size = tokens<br>
+          Thickness = similarity
         </div>
       </div>
     </div>
   </div>
 
-  <!-- HOW IT WORKS -->
+  <!-- HOW IT WORKS (below fold) -->
   <section id="how-it-works">
     <h2>How It Works</h2>
     <div class="pipeline">
       <div class="pipeline-step">
         <div class="pipeline-icon">🌱</div>
         <div class="pipeline-label">Seeds</div>
-        <div class="pipeline-desc">Start with known successful wallets</div>
+        <div class="pipeline-desc">Known winners</div>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
         <div class="pipeline-icon">🎯</div>
-        <div class="pipeline-label">Top Traders</div>
-        <div class="pipeline-desc">Fetch co-traders with high win rates</div>
+        <div class="pipeline-label">Traders</div>
+        <div class="pipeline-desc">High win rate</div>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
         <div class="pipeline-icon">🕸️</div>
         <div class="pipeline-label">Graph</div>
-        <div class="pipeline-desc">Build similarity network</div>
+        <div class="pipeline-desc">Network build</div>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
         <div class="pipeline-icon">👥</div>
         <div class="pipeline-label">Tribes</div>
-        <div class="pipeline-desc">Cluster by trading behavior</div>
+        <div class="pipeline-desc">Behavior cluster</div>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
         <div class="pipeline-icon">🔍</div>
         <div class="pipeline-label">Convergence</div>
-        <div class="pipeline-desc">Find cross-tribe token overlaps</div>
+        <div class="pipeline-desc">Cross-tribe overlap</div>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
         <div class="pipeline-icon">📊</div>
         <div class="pipeline-label">Signals</div>
-        <div class="pipeline-desc">Score & rank opportunities</div>
+        <div class="pipeline-desc">Score & rank</div>
       </div>
     </div>
     <div class="birdeye-badge">
@@ -527,11 +521,11 @@
   <footer>
     <div>Built for <strong>Birdeye Build in Public Competition</strong></div>
     <div class="footer-links">
-      <a href="https://github.com/yourusername/whalemesh" target="_blank">GitHub Repository</a>
+      <a href="https://github.com/0xtreme/birdeye-alpha-scanner" target="_blank">GitHub</a>
       <a href="https://twitter.com/birdeye_data" target="_blank">@birdeye_data</a>
       <a href="https://birdeye.so" target="_blank">#BirdeyeAPI</a>
     </div>
-    <div style="margin-top:16px; color:#444;">Powered by Birdeye Data Services</div>
+    <div style="margin-top:12px; color:#444; font-size:12px;">Powered by Birdeye Data Services</div>
   </footer>
 
   <!-- Tooltip -->
@@ -541,7 +535,6 @@
     // === DATA LOADING ===
     async function loadData() {
       try {
-        // Local dev version: try /api/graph first
         const res = await fetch('/api/graph');
         if (!res.ok) throw new Error('API not available');
         return await res.json();
@@ -550,11 +543,11 @@
         document.getElementById('signals-list').innerHTML = `
           <div class="signal-card">
             <div class="signal-header">
-              <div class="signal-token">No Data Available</div>
+              <div class="signal-token">No Data</div>
             </div>
             <div class="signal-metrics">
-              Run the scanner first: <code>npm run scan</code><br>
-              Then refresh this page.
+              Run: <code>npm run scan</code><br>
+              Then refresh.
             </div>
           </div>
         `;
@@ -606,23 +599,22 @@
             </div>
             <div class="signal-badges">
               <span class="badge ${signal.crossTribe ? 'badge-cross' : 'badge-same'}">
-                ${signal.crossTribe ? '⚡ CROSS-TRIBE' : '🔗 Same Tribe'}
+                ${signal.crossTribe ? '⚡ X-TRIBE' : '🔗 SAME'}
               </span>
-              <span class="badge badge-${riskClass}">${signal.risk} RISK</span>
+              <span class="badge badge-${riskClass}">${signal.risk}</span>
             </div>
-            <div class="signal-metrics">
-              <strong>${signal.wallets}</strong> wallets converging<br>
-              ${signal.mcap ? 'MCap: <strong>$' + formatNumber(signal.mcap) + '</strong>' : ''}<br>
-              ${signal.volume ? '24h Vol: <strong>$' + formatNumber(signal.volume) + '</strong>' : ''}<br>
+            <div class="signal-metrics monospace">
+              <strong>${signal.wallets}</strong> wallets<br>
+              ${signal.mcap ? 'MC: <strong>$' + formatNumber(signal.mcap) + '</strong>' : ''}<br>
+              ${signal.volume ? 'Vol: <strong>$' + formatNumber(signal.volume) + '</strong>' : ''}<br>
               ${signal.priceChange !== undefined ? 
-                '24h Change: <strong style="color:' + (signal.priceChange > 0 ? '#00ff88' : '#ff4444') + '">' + 
+                '24h: <strong style="color:' + (signal.priceChange > 0 ? '#00ff88' : '#ff4444') + '">' + 
                 (signal.priceChange > 0 ? '+' : '') + signal.priceChange.toFixed(2) + '%</strong>' : ''}
             </div>
           </div>
         `;
       }).join('');
 
-      // Add click handlers
       document.querySelectorAll('.signal-card').forEach(card => {
         card.addEventListener('click', () => {
           const token = card.dataset.token;
@@ -643,7 +635,6 @@
 
       svg.selectAll('*').remove();
 
-      // Background pattern
       const defs = svg.append('defs');
       const pattern = defs.append('pattern')
         .attr('id', 'grid')
@@ -659,13 +650,11 @@
 
       const g = svg.append('g');
 
-      // Zoom
       const zoom = d3.zoom()
         .scaleExtent([0.2, 8])
         .on('zoom', (e) => g.attr('transform', e.transform));
       svg.call(zoom);
 
-      // Tribe colors
       const tribeColors = ['#00ff88', '#ff6b35', '#3b82f6', '#a855f7', '#ec4899',
                           '#14b8a6', '#f59e0b', '#ef4444', '#6366f1', '#84cc16'];
 
@@ -674,13 +663,11 @@
         return idx >= 0 ? tribeColors[idx % tribeColors.length] : '#444';
       }
 
-      // Filter valid edges
       const nodeIds = new Set(data.nodes.map(n => n.id));
       const validEdges = data.edges.filter(e => 
         nodeIds.has(e.source) && nodeIds.has(e.target)
       );
 
-      // Force simulation
       const simulation = d3.forceSimulation(data.nodes)
         .force('link', d3.forceLink(validEdges)
           .id(d => d.id)
@@ -690,7 +677,6 @@
         .force('collision', d3.forceCollide()
           .radius(d => getNodeRadius(d) + 8));
 
-      // Links
       const link = g.selectAll('.link')
         .data(validEdges)
         .join('line')
@@ -698,7 +684,6 @@
         .attr('stroke', 'rgba(0,255,136,0.12)')
         .attr('stroke-width', d => 1 + d.weight * 3);
 
-      // Nodes
       const node = g.selectAll('.node')
         .data(data.nodes)
         .join('circle')
@@ -733,7 +718,6 @@
         d.fy = null;
       }
 
-      // Tooltip
       const tooltip = document.getElementById('tooltip');
 
       function showTooltip(e, d) {
@@ -773,7 +757,6 @@
         tooltip.style.display = 'none';
       }
 
-      // Simulation tick
       simulation.on('tick', () => {
         link
           .attr('x1', d => d.source.x)
@@ -785,49 +768,42 @@
           .attr('cy', d => d.y);
       });
 
-      // Store for signal highlighting
       window.graphElements = { node, link, data };
     }
 
-    // === HIGHLIGHT SIGNAL WALLETS ===
     function highlightSignalWallets(tokenAddr, data) {
       if (!window.graphElements) return;
-
       const { node, link } = window.graphElements;
-      
-      // Find wallets that traded this token
-      // (In real implementation, would need wallet->token mapping)
-      // For demo, just highlight random nodes
-      
       node.classed('highlighted', false).classed('dimmed', false);
       link.classed('dimmed', false);
-
-      // Reset after 3 seconds
       setTimeout(() => {
         node.classed('highlighted', false).classed('dimmed', false);
         link.classed('dimmed', false);
       }, 3000);
     }
 
-    // === UPDATE STATS ===
     function updateStats(data) {
       document.getElementById('stat-wallets').textContent = data.nodes.length;
       document.getElementById('stat-edges').textContent = data.edges.length;
       document.getElementById('stat-tribes').textContent = data.tribes.length;
       document.getElementById('stat-signals').textContent = data.signals.length;
+      
+      if (data.meta && data.meta.timestamp) {
+        const date = new Date(data.meta.timestamp);
+        document.getElementById('timestamp').textContent = date.toLocaleString('en-US', {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+      }
     }
 
-    // === INIT ===
     async function init() {
       const data = await loadData();
       if (!data) return;
-
       updateStats(data);
       renderSignals(data);
       renderGraph(data);
     }
 
-    // Handle window resize
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
