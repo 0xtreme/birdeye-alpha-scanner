@@ -1,0 +1,23 @@
+{
+  "name": "whalemesh",
+  "version": "0.1.0",
+  "description": "Smart Money Convergence Detector — maps relationships between top-performing wallets to detect convergence signals",
+  "type": "module",
+  "scripts": {
+    "test-api": "tsx src/test-api.ts",
+    "scan": "tsx src/scan.ts",
+    "build-graph": "tsx src/build-graph.ts",
+    "dev": "tsx src/index.ts",
+    "dashboard": "tsx src/dashboard/server.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "@types/express": "^4.17.21"
+  }
+}

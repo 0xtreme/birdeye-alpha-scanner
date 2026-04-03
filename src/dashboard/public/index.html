@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhaleMesh — Smart Money Convergence</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      overflow: hidden;
+    }
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      padding: 16px 24px;
+      background: linear-gradient(180deg, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0) 100%);
+    }
+    #header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #00ff88;
+      letter-spacing: 2px;
+    }
+    #header .subtitle {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    #stats {
+      position: fixed;
+      top: 16px;
+      right: 24px;
+      z-index: 10;
+      text-align: right;
+      font-size: 13px;
+    }
+    .stat { margin-bottom: 6px; }
+    .stat-label { color: #666; }
+    .stat-value { color: #00ff88; font-weight: 600; }
+    
+    #graph { width: 100vw; height: 100vh; }
+    
+    #signals {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      padding: 16px 24px;
+      background: linear-gradient(0deg, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0) 100%);
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+    .signal-card {
+      background: rgba(0, 255, 136, 0.05);
+      border: 1px solid rgba(0, 255, 136, 0.15);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      display: inline-block;
+      margin-right: 8px;
+      min-width: 220px;
+      vertical-align: top;
+    }
+    .signal-card.cross-tribe {
+      border-color: rgba(255, 136, 0, 0.4);
+      background: rgba(255, 136, 0, 0.05);
+    }
+    .signal-token { font-size: 16px; font-weight: 700; color: #fff; }
+    .signal-score { font-size: 24px; font-weight: 700; }
+    .signal-score.high { color: #00ff88; }
+    .signal-score.med { color: #ffaa00; }
+    .signal-score.low { color: #ff4444; }
+    .signal-detail { font-size: 11px; color: #888; margin-top: 4px; }
+    .signal-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-cross { background: rgba(255,136,0,0.2); color: #ffaa00; }
+    .badge-same { background: rgba(100,100,100,0.2); color: #888; }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      background: rgba(20, 20, 30, 0.95);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 100;
+      max-width: 300px;
+    }
+    .tooltip-addr { color: #00ff88; font-weight: 600; font-size: 13px; }
+    .tooltip-pnl { margin-top: 4px; }
+    .tooltip-tribe { color: #ffaa00; margin-top: 4px; }
+    
+    /* Legend */
+    #legend {
+      position: fixed;
+      bottom: 16px;
+      right: 24px;
+      z-index: 10;
+      font-size: 11px;
+    }
+    .legend-item { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h1>🕸️ WHALEMESH</h1>
+    <div class="subtitle">Smart Money Convergence Detector</div>
+  </div>
+  
+  <div id="stats">
+    <div class="stat"><span class="stat-label">Wallets: </span><span class="stat-value" id="stat-wallets">—</span></div>
+    <div class="stat"><span class="stat-label">Edges: </span><span class="stat-value" id="stat-edges">—</span></div>
+    <div class="stat"><span class="stat-label">Tribes: </span><span class="stat-value" id="stat-tribes">—</span></div>
+    <div class="stat"><span class="stat-label">Signals: </span><span class="stat-value" id="stat-signals">—</span></div>
+    <div class="stat"><span class="stat-label">Updated: </span><span class="stat-value" id="stat-time">—</span></div>
+  </div>
+
+  <svg id="graph"></svg>
+  
+  <div id="signals"></div>
+  
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#00ff88"></div> High PnL wallet</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffaa00"></div> Medium PnL wallet</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff4444"></div> Negative PnL wallet</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#444"></div> Unknown PnL</div>
+    <div style="margin-top:6px; color:#666;">Line thickness = co-trading similarity</div>
+  </div>
+
+  <div class="tooltip" id="tooltip" style="display:none"></div>
+
+  <script>
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const svg = d3.select('#graph')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Background grid
+    const defs = svg.append('defs');
+    const pattern = defs.append('pattern')
+      .attr('id', 'grid')
+      .attr('width', 40)
+      .attr('height', 40)
+      .attr('patternUnits', 'userSpaceOnUse');
+    pattern.append('circle')
+      .attr('cx', 20).attr('cy', 20).attr('r', 0.5)
+      .attr('fill', 'rgba(255,255,255,0.05)');
+    svg.append('rect')
+      .attr('width', width).attr('height', height)
+      .attr('fill', 'url(#grid)');
+
+    const g = svg.append('g');
+
+    // Zoom
+    const zoom = d3.zoom()
+      .scaleExtent([0.3, 5])
+      .on('zoom', (e) => g.attr('transform', e.transform));
+    svg.call(zoom);
+
+    const tooltip = document.getElementById('tooltip');
+
+    // Tribe colors
+    const tribeColors = [
+      '#00ff88', '#ff6b35', '#3b82f6', '#a855f7', '#ec4899',
+      '#14b8a6', '#f59e0b', '#ef4444', '#6366f1', '#84cc16'
+    ];
+
+    function getTribeColor(tribeId, tribes) {
+      const idx = tribes.findIndex(t => t.id === tribeId);
+      return idx >= 0 ? tribeColors[idx % tribeColors.length] : '#444';
+    }
+
+    function getPnLColor(pnl) {
+      if (pnl > 10000) return '#00ff88';
+      if (pnl > 0) return '#ffaa00';
+      if (pnl < 0) return '#ff4444';
+      return '#555';
+    }
+
+    function getNodeRadius(node) {
+      const base = 6;
+      return base + Math.min(10, node.tokenCount * 2);
+    }
+
+    async function loadAndRender() {
+      try {
+        const res = await fetch('/api/graph');
+        const data = await res.json();
+
+        // Stats
+        document.getElementById('stat-wallets').textContent = data.nodes.length;
+        document.getElementById('stat-edges').textContent = data.edges.length;
+        document.getElementById('stat-tribes').textContent = data.tribes.length;
+        document.getElementById('stat-signals').textContent = data.signals.length;
+        document.getElementById('stat-time').textContent = new Date(data.meta.timestamp).toLocaleTimeString();
+
+        // Signals panel
+        const sigDiv = document.getElementById('signals');
+        sigDiv.innerHTML = data.signals.map(s => `
+          <div class="signal-card ${s.crossTribe ? 'cross-tribe' : ''}">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="signal-token">$${s.token}</span>
+              <span class="signal-score ${s.score >= 60 ? 'high' : s.score >= 35 ? 'med' : 'low'}">${s.score}</span>
+            </div>
+            <div class="signal-detail">
+              ${s.wallets} wallets converging
+              <span class="signal-badge ${s.crossTribe ? 'badge-cross' : 'badge-same'}">
+                ${s.crossTribe ? '⚡ Cross-Tribe' : '🔗 Same Tribe'}
+              </span>
+            </div>
+            <div class="signal-detail">
+              ${s.mcap ? 'MCap: $' + (s.mcap / 1e6).toFixed(2) + 'M' : ''}
+              ${s.volume ? ' | Vol: $' + (s.volume / 1e3).toFixed(0) + 'K' : ''}
+            </div>
+          </div>
+        `).join('');
+
+        // Build D3 simulation
+        const nodeIds = new Set(data.nodes.map(n => n.id));
+        const validEdges = data.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+
+        const simulation = d3.forceSimulation(data.nodes)
+          .force('link', d3.forceLink(validEdges).id(d => d.id).distance(d => 120 - d.weight * 80))
+          .force('charge', d3.forceManyBody().strength(-200))
+          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('collision', d3.forceCollide().radius(d => getNodeRadius(d) + 5));
+
+        // Edges
+        const link = g.selectAll('.link')
+          .data(validEdges)
+          .join('line')
+          .attr('class', 'link')
+          .attr('stroke', 'rgba(0, 255, 136, 0.15)')
+          .attr('stroke-width', d => 1 + d.weight * 4);
+
+        // Glow effect for nodes
+        const glowFilter = defs.append('filter').attr('id', 'glow');
+        glowFilter.append('feGaussianBlur').attr('stdDeviation', 3).attr('result', 'blur');
+        const feMerge = glowFilter.append('feMerge');
+        feMerge.append('feMergeNode').attr('in', 'blur');
+        feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+        // Nodes
+        const node = g.selectAll('.node')
+          .data(data.nodes)
+          .join('circle')
+          .attr('class', 'node')
+          .attr('r', d => getNodeRadius(d))
+          .attr('fill', d => getTribeColor(d.tribeId, data.tribes))
+          .attr('stroke', d => getPnLColor(d.pnl))
+          .attr('stroke-width', 2)
+          .attr('filter', 'url(#glow)')
+          .style('cursor', 'pointer')
+          .call(d3.drag()
+            .on('start', (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+            .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+            .on('end', (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+          )
+          .on('mouseover', (e, d) => {
+            tooltip.style.display = 'block';
+            tooltip.innerHTML = `
+              <div class="tooltip-addr">${d.short || d.id.slice(0,8) + '...' + d.id.slice(-4)}</div>
+              <div class="tooltip-pnl">PnL: <b style="color:${getPnLColor(d.pnl)}">$${(d.pnl/1e3).toFixed(1)}K</b></div>
+              <div>Tokens traded: ${d.tokenCount}</div>
+              <div class="tooltip-tribe">Tribe: ${data.tribes.findIndex(t => t.id === d.tribeId) + 1 || '—'}</div>
+            `;
+          })
+          .on('mousemove', (e) => {
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 12) + 'px';
+          })
+          .on('mouseout', () => { tooltip.style.display = 'none'; });
+
+        // Labels for high-PnL nodes
+        const label = g.selectAll('.label')
+          .data(data.nodes.filter(n => Math.abs(n.pnl) > 1000 || n.tokenCount >= 3))
+          .join('text')
+          .attr('class', 'label')
+          .attr('font-size', 9)
+          .attr('fill', '#888')
+          .attr('text-anchor', 'middle')
+          .attr('dy', d => getNodeRadius(d) + 12)
+          .text(d => d.short || d.id.slice(0,6));
+
+        simulation.on('tick', () => {
+          link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+          node
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y);
+          label
+            .attr('x', d => d.x)
+            .attr('y', d => d.y);
+        });
+
+      } catch (err) {
+        document.getElementById('signals').innerHTML = `
+          <div class="signal-card">
+            <div class="signal-token">No data yet</div>
+            <div class="signal-detail">Run <code>npm run scan</code> first, then refresh.</div>
+          </div>
+        `;
+      }
+    }
+
+    loadAndRender();
+  </script>
+</body>
+</html>
