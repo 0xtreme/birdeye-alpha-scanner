@@ -85,6 +85,7 @@ export async function discoverWallets(
   console.log('🔍 Discovering top traders...');
   
   const walletTokens = new Map<string, Set<string>>();
+  const walletBias = new Map<string, Map<string, { buyVol: number; sellVol: number }>>();
   const tokenSymbols = new Map<string, string>();
 
   for (const seed of seedTokens) {
@@ -100,6 +101,14 @@ export async function discoverWallets(
         
         if (!walletTokens.has(wallet)) walletTokens.set(wallet, new Set());
         walletTokens.get(wallet)!.add(seed.address);
+        
+        // Capture buy/sell volumes
+        if (!walletBias.has(wallet)) walletBias.set(wallet, new Map());
+        walletBias.get(wallet)!.set(seed.address, {
+          buyVol: trader.volumeBuy ?? 0,
+          sellVol: trader.volumeSell ?? 0,
+        });
+        
         count++;
       }
       
@@ -112,15 +121,21 @@ export async function discoverWallets(
   console.log(`\n  Total unique wallets discovered: ${walletTokens.size}`);
   console.log(`  API calls so far: ${getCallCount()}\n`);
   
-  return { walletTokens, tokenSymbols };
+  return { walletTokens, walletBias, tokenSymbols };
 }
 
 // ═══════════════════════════════════════════
 // STEP 3: Profile wallets with PnL
 // ═══════════════════════════════════════════
 
+// Bot detection thresholds
+const BOT_PNL_THRESHOLD = -10_000_000;      // < -$10M realized = likely bot/exchange
+const BOT_TOKEN_THRESHOLD = 20_000;          // 20K+ unique tokens = definitely a bot
+const BOT_TRADE_THRESHOLD = 500_000;         // 500K+ trades = bot behavior
+
 export async function buildWalletProfiles(
   walletTokens: Map<string, Set<string>>,
+  walletBias: Map<string, Map<string, { buyVol: number; sellVol: number }>>,
   maxWallets = 30
 ): Promise<Map<string, WalletNode>> {
   // Prioritize wallets in 2+ token lists, then fill with single-token wallets
@@ -134,6 +149,7 @@ export async function buildWalletProfiles(
   
   const nodes = new Map<string, WalletNode>();
   let withPnL = 0;
+  let botsFiltered = 0;
 
   for (const [wallet, tokens] of multiToken) {
     try {
@@ -145,12 +161,29 @@ export async function buildWalletProfiles(
       const counts = summary?.counts ?? {};
       const cashflow = summary?.cashflow_usd ?? {};
       
+      const totalPnL = pnlNums?.realized_profit_usd ?? pnlNums?.total_usd ?? 0;
+      const uniqueTokens = counts?.unique_tokens ?? summary?.unique_tokens ?? 0;
+      const totalTrades = counts?.total_trade ?? 0;
+      
+      // Bot detection
+      const isBot = totalPnL < BOT_PNL_THRESHOLD || 
+                    uniqueTokens > BOT_TOKEN_THRESHOLD ||
+                    totalTrades > BOT_TRADE_THRESHOLD;
+      
+      if (isBot) {
+        botsFiltered++;
+        console.log(`  🤖 ${wallet.slice(0, 8)}... filtered (PnL: $${(totalPnL/1e6).toFixed(1)}M, ${uniqueTokens} tokens, ${totalTrades} trades)`);
+        continue; // Skip bots entirely
+      }
+      
       nodes.set(wallet, {
         address: wallet,
-        totalPnL: pnlNums?.realized_profit_usd ?? pnlNums?.total_usd ?? 0,
+        totalPnL,
         winRate: counts?.win_rate ?? 0,
         netWorth: cashflow?.current_value ?? 0,
+        uniqueTokenCount: uniqueTokens,
         tradedTokens: tokens,
+        tokenBias: walletBias.get(wallet) ?? new Map(),
       });
       withPnL++;
     } catch {
@@ -159,7 +192,9 @@ export async function buildWalletProfiles(
         totalPnL: 0,
         winRate: 0,
         netWorth: 0,
+        uniqueTokenCount: 0,
         tradedTokens: tokens,
+        tokenBias: walletBias.get(wallet) ?? new Map(),
       });
     }
     
@@ -168,7 +203,7 @@ export async function buildWalletProfiles(
     }
   }
 
-  console.log(`  ✅ ${nodes.size} wallets profiled (${withPnL} with PnL data)`);
+  console.log(`  ✅ ${nodes.size} wallets profiled (${withPnL} with PnL, ${botsFiltered} bots filtered)`);
   console.log(`  API calls so far: ${getCallCount()}\n`);
   
   return nodes;
@@ -321,8 +356,8 @@ export async function buildGraph(): Promise<CoTradingGraph & { tribes: Tribe[]; 
   console.log('═'.repeat(50) + '\n');
   
   const seeds = await discoverSeedTokens(15);
-  const { walletTokens, tokenSymbols } = await discoverWallets(seeds);
-  const nodes = await buildWalletProfiles(walletTokens, 40);
+  const { walletTokens, walletBias, tokenSymbols } = await discoverWallets(seeds);
+  const nodes = await buildWalletProfiles(walletTokens, walletBias, 50);
   const edges = buildCoTradingEdges(nodes);
   const tribes = detectTribes(nodes, edges);
   

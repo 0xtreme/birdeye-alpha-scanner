@@ -11,12 +11,18 @@ export interface WalletNode {
   winRate: number;
   /** Net worth in USD */
   netWorth: number;
+  /** Total unique tokens ever traded */
+  uniqueTokenCount: number;
   /** Tokens this wallet has traded (addresses) */
   tradedTokens: Set<string>;
+  /** Per-token buy/sell bias: token address → { buyVol, sellVol } */
+  tokenBias: Map<string, { buyVol: number; sellVol: number }>;
   /** Tribe/cluster ID (assigned by community detection) */
   tribeId?: number;
   /** Label (if known) */
   label?: string;
+  /** Is this wallet filtered as a bot/exchange? */
+  isBot?: boolean;
 }
 
 /** An edge in the co-trading graph — two wallets that trade the same tokens */
@@ -81,6 +87,9 @@ export interface ConvergenceEvent {
   volume24h?: number;
   liquidity?: number;
   priceChange24h?: number;
+  /** Buy/sell breakdown */
+  buyers?: number;
+  sellers?: number;
   /** Security flags */
   securityPassed: boolean;
   securityWarnings: string[];

@@ -96,6 +96,10 @@ async function scan() {
       risk: s.risk,
       mcap: s.event.mcap,
       volume: s.event.volume24h,
+      priceChange: s.event.priceChange24h,
+      buyers: s.event.buyers ?? 0,
+      sellers: s.event.sellers ?? 0,
+      profitableWallets: s.event.wallets.filter(w => w.pnl > 0).length,
     })),
     meta: {
       timestamp: new Date().toISOString(),
